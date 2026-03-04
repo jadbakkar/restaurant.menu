@@ -1,0 +1,71 @@
+<?php
+session_start();
+include 'db.php';
+
+$query = "
+SELECT 
+    dishes.name,
+    dishes.price,
+    orders.quantity,
+    orders.table_number,
+    (dishes.price * orders.quantity) AS total
+FROM orders
+JOIN dishes ON orders.dish_id = dishes.id
+";
+
+$result = mysqli_query($conn, $query);
+$grandTotal = 0;
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orders</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Orders List</h1>
+
+    <table>
+        <tr>
+            <th>Dish</th>
+            <th>Qty</th>
+            <th>Table</th>
+            <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+                <th>Price</th>
+                <th>Total</th>
+            <?php endif; ?>
+        </tr>
+
+        <?php while ($row = mysqli_fetch_assoc($result)): ?>
+        <tr>
+            <td><?= htmlspecialchars($row['name']) ?></td>
+            <td><?= (int)$row['quantity'] ?></td>
+            <td>Table <?= htmlspecialchars($row['table_number']) ?></td>
+
+            <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+                <td>$<?= number_format($row['price'], 2) ?></td>
+                <td>$<?= number_format($row['total'], 2) ?></td>
+                <?php $grandTotal += $row['total']; ?>
+            <?php endif; ?>
+        </tr>
+        <?php endwhile; ?>
+
+        <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+        <tr>
+            <th colspan="4">Grand Total</th>
+            <th>$<?= number_format($grandTotal, 2) ?></th>
+        </tr>
+        <?php endif; ?>
+    </table>
+
+    <a href="menu.php" class="btn">Back to Menu</a>
+</div>
+
+</body>
+</html>
+
+
+
